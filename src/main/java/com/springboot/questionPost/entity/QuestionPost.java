@@ -31,7 +31,6 @@ public class QuestionPost extends Auditable {
     @Column(columnDefinition = "integer default 0", nullable = false)
     private int viewCount;
 
-
     @Column(columnDefinition = "integer default 0", nullable = false)
     private int likeCount;
 
@@ -55,7 +54,6 @@ public class QuestionPost extends Auditable {
         QUESTION_ANSWERED,
         QUESTION_DELETED,
         QUESTION_DEACTIVED;
-
     }
 
     public enum OpenStatus{
@@ -69,16 +67,16 @@ public class QuestionPost extends Auditable {
 
     public void setMember(Member member){
         this.member = member;
-        if(!member.getQuestionPosts().contains(this)){
+
+        if( !member.getQuestionPosts().contains(this)) {
             member.getQuestionPosts().add(this);
         }
     }
     public void setAnswerPost(AnswerPost answerPost){
         this.answerPost = answerPost;
-        if(answerPost.getQuestionPost()!=this){
+
+        if( answerPost.getQuestionPost()!=this) {
             answerPost.setQuestionPost(this);
         }
     }
-
-
 }

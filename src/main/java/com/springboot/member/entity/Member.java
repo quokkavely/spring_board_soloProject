@@ -37,14 +37,17 @@ public class Member extends Auditable {
     @Column(length=13, nullable = false, unique = true)
     private String phone;
 
+    @Column(length=100, nullable = false)
+    private String password;
+
     @Enumerated(value=EnumType.STRING)
     @Column(length=20, nullable = false)
     @Setter
     private MemberStatus memberStatus=MemberStatus.MEMBER_ACTIVE;
 
-    @Enumerated(value=EnumType.STRING)
-    @Column
-    private UserRole userRole =UserRole.USER_ROLE_USER;
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String>roles = new ArrayList<>();
+
 
 
     public enum MemberStatus {
@@ -56,14 +59,7 @@ public class Member extends Auditable {
         @Setter
         private String status;
     }
-    public enum UserRole{
-        USER_ROLE_USER,
-        USER_ROLE_ADMIN;
 
-        @Getter
-        @Setter
-        private String userRole;
-    }
 
     public Member(String email, String name, String phone) {
         this.email = email;

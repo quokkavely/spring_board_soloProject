@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,12 +20,12 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/posts")
+@RequestMapping("/v2/posts")
 @Validated
 public class QuestionPostController {
     private final PostMapper mapper;
     private final QuestionPostService postService;
-    private final static String QUESTION_DEFAULT_URL="/v1/posts";
+    private final static String QUESTION_DEFAULT_URL="/v2/posts";
 
     public QuestionPostController(PostMapper mapper, QuestionPostService postService) {
         this.mapper = mapper;
@@ -31,12 +33,13 @@ public class QuestionPostController {
     }
 
     @PostMapping
-    public ResponseEntity postQuestionPost(@RequestBody PostDto.Post postDto){
-
-        QuestionPost questionPost = postService.createQuestionPost(mapper.postDtoToQuestionPost(postDto));
+    public ResponseEntity postQuestionPost(@RequestBody PostDto.Post postDto,
+                                           Authentication authentication){
+        QuestionPost questionPost = postService
+                .createQuestionPost(mapper.postDtoToQuestionPost(postDto), authentication);
         URI location = UriComponentsBuilder
                 .newInstance()
-                .path(QUESTION_DEFAULT_URL+"/{answerId}")
+                .path(QUESTION_DEFAULT_URL+"/{postId}")
                 .buildAndExpand(questionPost.getPostId())
                 .toUri();
 
@@ -45,17 +48,20 @@ public class QuestionPostController {
     }
     @PatchMapping("/{postId}")
    public ResponseEntity patchQuestionPost(@PathVariable("postId") @Positive long postId,
-                                           @RequestBody PostDto.Patch patchDto){
+                                           @RequestBody PostDto.Patch patchDto,
+                                           Authentication authentication){
         patchDto.setPostId(postId);
-       QuestionPost questionPost= postService.updateQuestionPost(mapper.patchDtoToQuestionPost(patchDto));
+       QuestionPost questionPost= postService.updateQuestionPost(mapper.patchDtoToQuestionPost(patchDto),authentication);
         return new ResponseEntity(mapper.QuestionToResponseDto(questionPost), HttpStatus.OK);
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity getQuestionPost(@PathVariable("postId") @Positive long postId){
+    public ResponseEntity getQuestionPost(@PathVariable("postId") @Positive long postId,
+                                          Authentication authentication){
+
        return new ResponseEntity(mapper.QuestionToResponseDto
-               ( postService.findQuestionPost(postId)),
-               HttpStatus.OK);
+               ( postService.findQuestionPost(postId,authentication )),
+               HttpStatus.OK );
     }
 
     @GetMapping
@@ -69,24 +75,18 @@ public class QuestionPostController {
                         mapper.QuestionPostsToResponseDtos(posts),pagePosts),HttpStatus.OK);
     }
     @DeleteMapping("/{postId}")
-    public ResponseEntity deleteQuestionPosts(@PathVariable("postId")long postId){
-        postService.deleteQuestionPost(postId);
+    public ResponseEntity deleteQuestionPosts(@PathVariable("postId")long postId, Authentication authentication){
+        postService.deleteQuestionPost(postId,authentication);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/{postId}/like")
-    public ResponseEntity getLikeQuestionPostsWithConfirmMember(@PathVariable("postId") @Positive  long postId,
-                                                            @RequestParam @Positive long memberId){
-        //인증 인가 구현하면서 Id 제거하기,URL에 개인정보가 들어오면 안된다.
-        postService.addLike(postId,memberId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/like/{postId}")
+    public ResponseEntity getLikeQuestionPostsWithConfirmMember(@PathVariable("postId") @Positive long postId,
+                                                                Authentication authentication){
+        postService.addLike(postId,authentication);
+        return new ResponseEntity(mapper.QuestionToResponseDto
+                ( postService.findQuestionPost(postId,authentication )),
+                HttpStatus.OK );
     }
 
-    @GetMapping("/{postId}/member")
-    public ResponseEntity getViewQuestionPostWithConfirmMember(@PathVariable("postId") @Positive long postId,
-                                                               @RequestParam @Positive long memberId){
-        postService.updateViews(postId,memberId);
-        return new ResponseEntity<>(mapper.QuestionToResponseDto
-                ( postService.findQuestionPost(postId)), HttpStatus.OK);
-    }
 }

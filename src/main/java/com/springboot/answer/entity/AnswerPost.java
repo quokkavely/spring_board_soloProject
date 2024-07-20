@@ -22,7 +22,7 @@ public class AnswerPost extends Auditable {
     @Column(nullable = false)
     private String replyContent;
 
-    @OneToOne//(cascade = CascadeType.MERGE)
+    @OneToOne
     @JoinColumn(name = "POST_ID")
     private QuestionPost questionPost;
 
@@ -30,28 +30,16 @@ public class AnswerPost extends Auditable {
     @Column
     private QuestionPost.OpenStatus openStatus;
 
-
-
     public AnswerPost(String title, String replyContent) {
         this.title = title;
         this.replyContent = replyContent;
     }
 
-    public void setQuestionPost(QuestionPost questionPost){
+    public void setQuestionPost(QuestionPost questionPost) {
         this.questionPost=questionPost;
         if(questionPost.getAnswerPost()!=this){
             questionPost.setAnswerPost(this);
         }
     }
-
-
-//    public enum OpenStatus{
-//        PUBLIC,
-//        PRIVATE;
-//
-//        @Getter
-//        @Setter
-//        private String status;
-//    }
 
 }

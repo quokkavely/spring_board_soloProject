@@ -7,7 +7,9 @@ public enum ExceptionCode {
     MEMBER_ALREADY_EXIST(409,"Member already exist"),
     POST_NOT_FOUND(404,"Post not found"),
     POST_ALREADY_EXIST(409,"Post already exist"),
-    ONLY_ADMIN_CAN_WRITE(403, "Only administrators can write answer");
+    ONLY_ADMIN_CAN_WRITE(403, "Only administrators can write answer"),
+    ONLY_ACCESSIBLE_WHAT_YOU_WRITE(403,"Only accessible what you write");
+
     @Getter
     private int statusCode;
     @Getter

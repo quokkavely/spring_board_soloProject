@@ -1,6 +1,5 @@
 package com.springboot.answer.dto;
 
-import com.springboot.answer.entity.AnswerPost;
 import com.springboot.questionPost.entity.QuestionPost;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,12 +32,11 @@ public class AnswerDto {
     @AllArgsConstructor
     public static class Response{
         private long answerId;
+        private long questionId;
         private String title;
         private String replyContent;
         private QuestionPost.OpenStatus openStatus;
         private LocalDateTime createdAt;
         private LocalDateTime modifiedAt;
-
-
     }
 }

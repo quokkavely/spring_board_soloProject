@@ -12,10 +12,8 @@ import javax.transaction.Transactional;
 public interface PostRepository extends JpaRepository<QuestionPost,Long> {
     @Modifying
     @Transactional
-    @Query("update QuestionPost p set p.viewCount = p.viewCount + 1 where p.postId = :postId")
-    int updateView(Long postId);
+    @Query("update QuestionPost p set p.viewCount = p.viewCount + 1 where p.postId = :postId and p.member.memberId <> :memberId")
+    int increaseViewCount(Long postId, long memberId);
 
     Page<QuestionPost> findByQuestionStatusNotAndOpenStatus(QuestionPost.QuestionStatus status, QuestionPost.OpenStatus openStatus, Pageable pageable);
-
-
 }
