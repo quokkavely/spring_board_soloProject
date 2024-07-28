@@ -2,7 +2,7 @@ package com.springboot.auth.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springboot.auth.dto.LoginDto;
-import com.springboot.jwt.JwtTokenizer;
+import com.springboot.auth.jwt.JwtTokenizer;
 import com.springboot.member.entity.Member;
 import lombok.SneakyThrows;
 import org.springframework.security.authentication.AuthenticationManager;

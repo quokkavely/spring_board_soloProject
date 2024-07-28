@@ -1,5 +1,6 @@
 package com.springboot.questionPost.dto;
 
+import com.springboot.answer.entity.AnswerPost;
 import com.springboot.member.entity.Member;
 import com.springboot.questionPost.entity.QuestionPost;
 import lombok.AllArgsConstructor;
@@ -49,6 +50,9 @@ public class PostDto {
         private int viewCount;
         private LocalDateTime createdAt;
         private LocalDateTime modifiedAt;
+        //private AnswerPost answerPost;
+        private String answerTitle;
+        private String answerContent;
 
     }
 }

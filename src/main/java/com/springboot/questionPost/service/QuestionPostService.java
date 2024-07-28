@@ -2,6 +2,7 @@ package com.springboot.questionPost.service;
 
 
 import com.springboot.answer.entity.AnswerPost;
+import com.springboot.event.PostRegisterEvent;
 import com.springboot.exception.BusinessLogicException;
 import com.springboot.exception.ExceptionCode;
 import com.springboot.likes.LikePost;
@@ -10,6 +11,7 @@ import com.springboot.member.entity.Member;
 import com.springboot.member.service.MemberService;
 import com.springboot.questionPost.entity.QuestionPost;
 import com.springboot.questionPost.repository.PostRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,13 +29,16 @@ public class QuestionPostService {
     private final PostRepository postRepository;
     private final MemberService memberService;
     private final LikesRepository likesRepository;
+    private final ApplicationEventPublisher publisher;
 
-    public QuestionPostService(PostRepository postRepository, MemberService memberService, LikesRepository likesRepository) {
+    public QuestionPostService(PostRepository postRepository, MemberService memberService, LikesRepository likesRepository, ApplicationEventPublisher publisher) {
         this.postRepository = postRepository;
         this.memberService = memberService;
         this.likesRepository = likesRepository;
+        this.publisher = publisher;
     }
 
+    @Transactional
     public QuestionPost createQuestionPost(QuestionPost questionPost, Authentication authentication) {
         //회원만 질문가능 -> 현재는 memberId를 넣어야 생성가능 -> authentication으로 memberId 제거
         String user = (String) authentication.getPrincipal();
@@ -44,9 +49,11 @@ public class QuestionPostService {
 
         questionPost.setMember(member);
 
+        publisher.publishEvent(new PostRegisterEvent(this, questionPost));
         return postRepository.save(questionPost);
     }
 
+    @Transactional
     public QuestionPost updateQuestionPost(QuestionPost questionPost, Authentication authentication) {
 
         String user = authentication.getPrincipal().toString();
@@ -98,6 +105,7 @@ public class QuestionPostService {
                                 QuestionPost.OpenStatus.PUBLIC, pageable);
     }
 
+    @Transactional
     public void deleteQuestionPost(long postId, Authentication authentication ) {
         //삭제는 되면  안되고 상태만 변경할 수 있다. (관리자와 본인만 가능)
 
@@ -223,6 +231,7 @@ public class QuestionPostService {
     }
 
     //조회수 증가
+    @Transactional
     private void increaseViewCount(long postId, long memberId) {
         postRepository.increaseViewCount(postId, memberId);
     }

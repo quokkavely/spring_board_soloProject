@@ -20,6 +20,6 @@ public abstract class Auditable {
 
     @Setter
     @Column(name="Last_Modified_at")
-    private LocalDateTime modifiedAt;
+    private LocalDateTime modifiedAt =LocalDateTime.now();;
 
 }

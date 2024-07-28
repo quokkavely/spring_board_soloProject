@@ -5,7 +5,6 @@ import com.springboot.member.entity.Member;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import javax.persistence.*;
 
 

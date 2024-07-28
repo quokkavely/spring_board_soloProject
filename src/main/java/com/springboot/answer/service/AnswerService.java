@@ -4,18 +4,13 @@ import com.springboot.answer.entity.AnswerPost;
 import com.springboot.answer.repository.AnswerRepository;
 import com.springboot.exception.BusinessLogicException;
 import com.springboot.exception.ExceptionCode;
-import com.springboot.member.entity.Member;
 import com.springboot.member.service.MemberService;
 import com.springboot.questionPost.entity.QuestionPost;
 import com.springboot.questionPost.service.QuestionPostService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
+
 import java.util.Optional;
 
 @Service
@@ -23,16 +18,19 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionPostService postService;
     private final MemberService memberService;
+    private final ApplicationEventPublisher publisher;
 
 
-    public AnswerService(AnswerRepository answerRepository, QuestionPostService postService, MemberService memberService) {
+    public AnswerService(AnswerRepository answerRepository, QuestionPostService postService, MemberService memberService, ApplicationEventPublisher publisher) {
         this.answerRepository = answerRepository;
         this.postService = postService;
         this.memberService = memberService;
+        this.publisher = publisher;
     }
 
 
     public AnswerPost createAnswer(AnswerPost answerPost){
+
         AnswerPost uploadAnswer = possibleAnswerPost(answerPost);
         QuestionPost questionPost = uploadAnswer.getQuestionPost();
 
@@ -45,12 +43,16 @@ public class AnswerService {
         uploadAnswer.setOpenStatus(questionPost.getOpenStatus());
        //답변이 등록 될때 질문글의 상태는 answered 로 변경한다.
         questionPost.setQuestionStatus(QuestionPost.QuestionStatus.QUESTION_ANSWERED);
-      //여기 수정해야됨  postService.updateQuestionPost(questionPost);
+        //여기 수정해야됨  postService.updateQuestionPost(questionPost);
         //admin은 모든 권한을 수정할 수 있게 설정하기
+
+       // publisher.publishEvent(new AnswerRegisterEvent());
         return answerRepository.save(uploadAnswer);
     }
 
     public AnswerPost updateAnswer(AnswerPost answerPost){
+
+
         //어짜피 관리자만 수정할 수 있기 때문에 접근권한 설정 필요 없음.
        AnswerPost findAnswer = findVerifiedAnswerPost(answerPost.getAnswerId());
        Optional.ofNullable(answerPost.getTitle()).ifPresent(findAnswer::setTitle);
@@ -83,7 +85,7 @@ public class AnswerService {
         answerRepository.delete(findAnswerPost);
     }
 
-    private AnswerPost findVerifiedAnswerPost(long answerId){
+    public AnswerPost findVerifiedAnswerPost(long answerId){
         Optional<AnswerPost> optionalAnswerPost = answerRepository.findById(answerId);
 
         return optionalAnswerPost.orElseThrow(()-> new BusinessLogicException(ExceptionCode.POST_NOT_FOUND));
@@ -92,6 +94,7 @@ public class AnswerService {
     //답변 가능한 게시글인지 확인하는 메서드
     private AnswerPost possibleAnswerPost(AnswerPost answerPost) {
         //질문이 존재하는지 검증하고 연결.
+
         long questionId = answerPost.getQuestionPost().getPostId();
         QuestionPost findQuestionPost = postService.findVerifiedPost(questionId);
         answerPost.setQuestionPost(findQuestionPost);

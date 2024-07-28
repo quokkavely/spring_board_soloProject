@@ -2,6 +2,7 @@ package com.springboot.answer.entity;
 
 import com.springboot.audit.Auditable;
 import com.springboot.questionPost.entity.QuestionPost;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @Entity
+@AllArgsConstructor
 public class AnswerPost extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,4 +44,10 @@ public class AnswerPost extends Auditable {
         }
     }
 
+    public AnswerPost(long answerId, String title, String replyContent, QuestionPost.OpenStatus openStatus) {
+        this.answerId = answerId;
+        this.title = title;
+        this.replyContent = replyContent;
+        this.openStatus = openStatus;
+    }
 }

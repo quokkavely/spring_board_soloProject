@@ -20,12 +20,12 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v2/posts")
+@RequestMapping("/v3/posts")
 @Validated
 public class QuestionPostController {
     private final PostMapper mapper;
     private final QuestionPostService postService;
-    private final static String QUESTION_DEFAULT_URL="/v2/posts";
+    private final static String QUESTION_DEFAULT_URL="/v3/posts";
 
     public QuestionPostController(PostMapper mapper, QuestionPostService postService) {
         this.mapper = mapper;
@@ -75,18 +75,18 @@ public class QuestionPostController {
                         mapper.QuestionPostsToResponseDtos(posts),pagePosts),HttpStatus.OK);
     }
     @DeleteMapping("/{postId}")
-    public ResponseEntity deleteQuestionPosts(@PathVariable("postId")long postId, Authentication authentication){
+    public ResponseEntity deleteQuestionPosts(@PathVariable("postId")long postId,
+                                              Authentication authentication){
         postService.deleteQuestionPost(postId,authentication);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/like/{postId}")
+    @GetMapping("/{postId}/like")
     public ResponseEntity getLikeQuestionPostsWithConfirmMember(@PathVariable("postId") @Positive long postId,
                                                                 Authentication authentication){
         postService.addLike(postId,authentication);
-        return new ResponseEntity(mapper.QuestionToResponseDto
-                ( postService.findQuestionPost(postId,authentication )),
-                HttpStatus.OK );
+
+        return new ResponseEntity(HttpStatus.OK );
     }
 
 }

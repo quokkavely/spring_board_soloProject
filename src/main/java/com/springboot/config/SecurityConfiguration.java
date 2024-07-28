@@ -1,11 +1,13 @@
 package com.springboot.config;
 
 import com.springboot.auth.filter.JwtAuthenticationFilter;
+import com.springboot.auth.handler.MemberAccessDeniedHandler;
+import com.springboot.auth.handler.MemberAuthenticationEntryPoint;
 import com.springboot.auth.handler.MemberAuthenticationFailureHandler;
 import com.springboot.auth.handler.MemberAuthenticationSuccessHandler;
 import com.springboot.auth.utils.JwtAuthorityUtils;
 import com.springboot.auth.filter.JwtVerifiedFilter;
-import com.springboot.jwt.JwtTokenizer;
+import com.springboot.auth.jwt.JwtTokenizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -45,6 +47,10 @@ public class SecurityConfiguration {
                 .and()
                 .formLogin().disable()
                 .httpBasic().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(new MemberAuthenticationEntryPoint())
+                .accessDeniedHandler(new MemberAccessDeniedHandler())
+                .and()
                 .apply(new CustomFilterConfigurer())
                 .and()
                 .authorizeHttpRequests(authorize -> authorize
@@ -54,11 +60,13 @@ public class SecurityConfiguration {
                         .antMatchers(HttpMethod.GET,"/*/members/**").hasAnyRole("User","ADMIN")
                         .antMatchers(HttpMethod.DELETE,"/*/members/**").hasRole("USER")
                         .antMatchers(HttpMethod.POST,"/*/posts").hasAnyRole("USER","ADMIN")
+                        .antMatchers(HttpMethod.GET,"/*/posts/**").hasAnyRole("USER","ADMIN")
                         .antMatchers(HttpMethod.PATCH,"/*/posts/**").hasRole("USER")
                         .antMatchers(HttpMethod.DELETE,"/*/posts/**").hasAnyRole("USER","ADMIN")
-                        .antMatchers(HttpMethod.POST,"/*/answers").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.PATCH,"/*/answers").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.DELETE,"/*/answers").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.POST,"/*/posts/*/answers").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.GET,"/*/posts/*/answers/**").hasAnyRole("USER","ADMIN")
+                        .antMatchers(HttpMethod.PATCH,"/*/posts/*/answers/**").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.DELETE,"/*/posts/*/answers/**").hasRole("ADMIN")
                         // - 관리자가 회원의 부적절한 게시글을 삭제할 수 있다.
                         .anyRequest().permitAll()
                 );
@@ -82,14 +90,15 @@ public class SecurityConfiguration {
 
     public class CustomFilterConfigurer extends AbstractHttpConfigurer<CustomFilterConfigurer,HttpSecurity>{
         @Override
-        public void configure(HttpSecurity builder){
+        public void configure(HttpSecurity builder) throws Exception{
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
             JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager,jwtTokenizer);
-            jwtAuthenticationFilter.setFilterProcessesUrl("/v2/auth/login");
+            jwtAuthenticationFilter.setFilterProcessesUrl("/v3/auth/login");
             jwtAuthenticationFilter.setAuthenticationSuccessHandler(new MemberAuthenticationSuccessHandler());
             jwtAuthenticationFilter.setAuthenticationFailureHandler(new MemberAuthenticationFailureHandler());
             JwtVerifiedFilter jwtVerifiedFilter = new JwtVerifiedFilter(jwtTokenizer,jwtAuthorityUtils);
-            builder.addFilter(jwtAuthenticationFilter)
+            builder
+                    .addFilter(jwtAuthenticationFilter)
                     .addFilterAfter(jwtVerifiedFilter,JwtAuthenticationFilter.class);
         }
     }

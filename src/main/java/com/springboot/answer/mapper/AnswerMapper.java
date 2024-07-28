@@ -11,19 +11,11 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AnswerMapper {
-
-    default AnswerPost postDtoToAnswerPost (AnswerDto.Post postDto) {
-
-        QuestionPost questionPost = new QuestionPost();
-
-        questionPost.setPostId(postDto.getQuestionPostId());
-        AnswerPost answerPost = new AnswerPost(postDto.getTitle(), postDto.getReplyContent());
-        answerPost.setQuestionPost(questionPost);
-
-        return answerPost;
-    }
-
+    @Mapping(source ="postId", target = "questionPost.postId")
+    AnswerPost postDtoToAnswerPost (AnswerDto.Post postDto);
     AnswerPost patchDtoToAnswerPost(AnswerDto.Patch patchDto);
+
+    @Mapping(source="questionPost.postId", target = "postId")
     AnswerDto.Response answerPostToResponseDto(AnswerPost answerPost);
     List<AnswerDto.Response> QuestionPostsToResponseDtos(List<AnswerPost>posts);
 }

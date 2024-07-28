@@ -19,11 +19,11 @@ import java.util.List;
 
 @Validated
 @RestController
-@RequestMapping("/v2/answers")
+@RequestMapping("/v3/posts/{postId}/answers")
 public class AnswerController {
     private final AnswerMapper answerMapper;
     private final AnswerService answerService;
-    private final static String ANSWER_DEFAULT_URL="/v2/answers";
+    private final static String ANSWER_DEFAULT_URL="/v3/posts/{postId}/answers";
 
     public AnswerController(AnswerMapper answerMapper, AnswerService answerService) {
         this.answerMapper = answerMapper;
@@ -31,47 +31,48 @@ public class AnswerController {
     }
 
     @PostMapping
-    public ResponseEntity postAnswer(@RequestBody AnswerDto.Post answerPostDto){
-      AnswerPost answerPost = answerService
+    public ResponseEntity postAnswer(@PathVariable("postId") @Positive long postId,
+                                     @RequestBody AnswerDto.Post answerPostDto,
+                                     Authentication authentication) {
+
+        answerPostDto.setPostId(postId);
+        AnswerPost answerPost = answerService
               .createAnswer(answerMapper.postDtoToAnswerPost(answerPostDto));
         URI location = UriComponentsBuilder
                 .newInstance()
                 .path(ANSWER_DEFAULT_URL+"/{answerId}")
-                .buildAndExpand(answerPost.getAnswerId())
+                .buildAndExpand(postId,answerPost.getAnswerId())
                 .toUri();
 
         return ResponseEntity.created(location).build();
     }
 
     @PatchMapping("/{answerId}")
-    public ResponseEntity patchAnswer(@PathVariable("answerId") long answerId,
-                                      @RequestBody AnswerDto.Patch answerPatchDto){
-
+    public ResponseEntity patchAnswer(@PathVariable("postId") long postId,
+                                      @PathVariable("answerId") long answerId,
+                                      @RequestBody AnswerDto.Patch answerPatchDto,
+                                      Authentication authentication){
+        answerPatchDto.setPostId(postId);
+        answerService.findVerifiedAnswerPost(answerId); //꼭 해야되는지 체크해보기.
         answerPatchDto.setAnswerId(answerId);
+
+
         AnswerPost answerPost =answerService
-                .updateAnswer( answerMapper.patchDtoToAnswerPost(answerPatchDto));
+                .updateAnswer( answerMapper.patchDtoToAnswerPost(answerPatchDto) );
         return new ResponseEntity( answerMapper.answerPostToResponseDto(answerPost), HttpStatus.OK);
     }
 
     @GetMapping("/{answerId}")
-    public ResponseEntity getAnswer( @PathVariable("answerId") @Positive long answerId){
+    public ResponseEntity getAnswer( @PathVariable("answerId") @Positive long answerId,
+                                     Authentication authentication) {
         AnswerPost answerPost= answerService.findAnswer(answerId);
         return new ResponseEntity(answerMapper.answerPostToResponseDto(answerPost),HttpStatus.OK);
     }
 
-//    @GetMapping
-//    public ResponseEntity getAnswers(@Positive @RequestParam int page,
-//                                     @Positive @RequestParam int size){
-//
-//        Page<AnswerPost>pageAnswers = answerService.findAnswers(page-1,size);
-//        List<AnswerPost> answerPosts = pageAnswers.getContent();
-//        return new ResponseEntity(
-//                new MultiResponseDto<>(
-//                        answerMapper.QuestionPostsToResponseDtos(answerPosts),pageAnswers),HttpStatus.OK);
-//    }
 
     @DeleteMapping("/{answerId}")
-    public ResponseEntity deleteAnswer( @PathVariable("answerId")long answerId ) {
+    public ResponseEntity deleteAnswer( @PathVariable("answerId")long answerId,
+                                        Authentication authentication) {
         answerService.deleteAnswer( answerId ) ;
         return new ResponseEntity( HttpStatus.NO_CONTENT );
     }

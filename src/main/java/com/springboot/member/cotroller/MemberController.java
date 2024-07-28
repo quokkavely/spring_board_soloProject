@@ -18,12 +18,12 @@ import java.net.URI;
 import java.util.List;
 
 @Validated
-@RequestMapping("/v2/members")
+@RequestMapping("/v3/members")
 @RestController
 public class MemberController {
     private final MemberMapper mapper;
     private final MemberService memberService;
-    private final static String MEMBER_DEFAULT_URL="/v2/members";
+    private final static String MEMBER_DEFAULT_URL="/v3/members";
 
     public MemberController(MemberMapper mapper, MemberService memberService) {
         this.mapper = mapper;

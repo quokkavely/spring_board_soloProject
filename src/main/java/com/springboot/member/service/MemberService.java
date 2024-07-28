@@ -22,9 +22,11 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthorityUtils jwtAuthorityUtils;
-    //private final String USER_ROLE_ADMIN = "admin@gmail.com";
 
-    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder, JwtAuthorityUtils jwtAuthorityUtils) {
+    public MemberService(MemberRepository memberRepository,
+                         PasswordEncoder passwordEncoder,
+                         JwtAuthorityUtils jwtAuthorityUtils) {
+
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtAuthorityUtils = jwtAuthorityUtils;
@@ -70,7 +72,7 @@ public class MemberService {
     private boolean verifyExistEmail(String email) {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (optionalMember.isPresent()) {
-            throw new BusinessLogicException(ExceptionCode.MEMBER_ALREADY_EXIST);
+            throw new BusinessLogicException(ExceptionCode.EMAIL_ALREADY_EXIST);
         }
 
         return false;
@@ -91,7 +93,7 @@ public class MemberService {
     private void isExistPhone(String phone) {
         Optional<Member> optionalMember = memberRepository.findByPhone(phone);
         if (optionalMember.isPresent()) {
-            throw new BusinessLogicException(ExceptionCode.MEMBER_ALREADY_EXIST);
+            throw new BusinessLogicException(ExceptionCode.PHONE_ALREADY_EXIST);
         }
     }
 
